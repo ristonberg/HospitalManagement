@@ -4,7 +4,7 @@ from django.contrib.auth.models import (
 )
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, name, email, specialization, date_of_birth, sex, marriage_status, primary_contact, secondary_contact,
+    def create_user(self, status, first_name,last_name, email, date_of_birth, sex, marriage_status, primary_contact, secondary_contact,
                     password=None):
            """
         Creates and saves a User with the given email, date of
@@ -14,11 +14,13 @@ class MyUserManager(BaseUserManager):
             raise ValueError('Users must have an email address')
 
         user = self.model(
+            status= status
             email=self.normalize_email(email),
             date_of_birth=date_of_birth,
             specialization=specialization,
             sex=sex,
-            name=name,
+            first_name=first_name,
+            last_name=last_name,
             marriage_status=marriage_status,
             primary_contact=primary_contact,
             secondary_contact=secondary_contact,
@@ -40,17 +42,17 @@ class MyUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-class Patient(AbstractBaseUser):
+class MyUser(AbstractBaseUser):
     identifier = models.CharField(max_length=20, unique=True)
     USERNAME_FIELD = 'identifier'
     email = models.EmailField(verbose_name='email address',
                               max_length=255, unique=True,)
+    status=models.CharField(max_length=15, unique=False)
     is_active=models.BooleanField(default=True)
-    is_content_manager=models.BooleanField(default=False)
-    is_admin = models.BooleanField(default=False)
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=10, unique=False)
-    name = models.CharField(max_length=40, unique=False)
+    first_namename = models.CharField(max_length=40, unique=False)
+    last_name = models.CharField(max_length=40, unique=False)
     marriage_status = models.BooleanField()
     primary_contact = models.IntegerField(max_length=11)
     secondary_contact = models.IntegerField(max_length=11)
@@ -59,7 +61,7 @@ class Patient(AbstractBaseUser):
     
     def get_full_name(self):
         # The user is identified by their email address
-        return self.name
+        return self.first_name
 
     def get_short_name(self):
         # The user is identified by their email address
@@ -67,6 +69,11 @@ class Patient(AbstractBaseUser):
 
     def __str__(self):              # __unicode__ on Python 2
         return self.name
+    
+class Patient(MyUser):
+    is_content_manager=models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
+    
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
@@ -90,34 +97,11 @@ class Patient(AbstractBaseUser):
         super().save(*args, **kwargs)
     
     
-class Doctor(AbstractBaseUser):
-    identifier = models.CharField(max_length=20, unique=True)
-    USERNAME_FIELD = 'identifier'
-    email = models.EmailField(verbose_name='email address',
-                              max_length=255, unique=True,)
-    is_active=models.BooleanField(default=True)
+class Doctor(MyUser):
     is_content_manager=models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     specialization= models.CharField(max_length=40, unique=False)
-    date_of_birth = models.DateField()
-    sex = models.CharField(max_length=10, unique=False)
-    name = models.CharField(max_length=40, unique=False)
-    marriage_status = models.BooleanField()
-    primary_contact = models.IntegerField(max_length=11)
-    secondary_contact = models.IntegerField(max_length=11)
     
-    objects = MyUserManager()
-    
-    def get_full_name(self):
-        # The user is identified by their email address
-        return self.name
-
-    def get_short_name(self):
-        # The user is identified by their email address
-        return self.name
-
-    def __str__(self):              # __unicode__ on Python 2
-        return self.name
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
@@ -140,35 +124,11 @@ class Doctor(AbstractBaseUser):
         # managing any courses
         super().save(*args, **kwargs)
 
-class Nurse(AbstractBaseUser):
-    identifier = models.CharField(max_length=20, unique=True)
-    USERNAME_FIELD = 'identifier'
-    email = models.EmailField(verbose_name='email address',
-                              max_length=255, unique=True,)
-    is_active=models.BooleanField(default=True)
+class Nurse(MyUser):
     is_content_manager=models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     department= models.CharField(max_length=40, unique=False)
-    date_of_birth = models.DateField()
-    sex = models.CharField(max_length=10, unique=False)
-    name = models.CharField(max_length=40, unique=False)
-    marriage_status = models.BooleanField()
-    primary_contact = models.IntegerField(max_length=11)
-    secondary_contact = models.IntegerField(max_length=11)
     
-    objects = MyUserManager()
-    
-    def get_full_name(self):
-        # The user is identified by their email address
-        return self.name
-
-    def get_short_name(self):
-        # The user is identified by their email address
-        return self.name
-
-    def __str__(self):              # __unicode__ on Python 2
-        return self.name
-
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
         # Simplest possible answer: Yes, always
