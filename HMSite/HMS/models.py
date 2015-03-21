@@ -6,7 +6,7 @@ from django.contrib.auth.models import (
 class MyUserManager(BaseUserManager):
     def create_user(self, status, first_name,last_name, email, date_of_birth, sex, marriage_status, primary_contact, secondary_contact,
                     password=None):
-           """
+        """
         Creates and saves a User with the given email, date of
         birth and password.
         """
@@ -14,7 +14,7 @@ class MyUserManager(BaseUserManager):
             raise ValueError('Users must have an email address')
 
         user = self.model(
-            status= status
+            status=status,
             email=self.normalize_email(email),
             date_of_birth=date_of_birth,
             specialization=specialization,
@@ -51,12 +51,13 @@ class MyUser(AbstractBaseUser):
     is_active=models.BooleanField(default=True)
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=10, unique=False)
-    first_namename = models.CharField(max_length=40, unique=False)
+    first_name = models.CharField(max_length=40, unique=False)
     last_name = models.CharField(max_length=40, unique=False)
-    marriage_status = models.BooleanField()
+    marriage_status = models.BooleanField(default=False)
     primary_contact = models.IntegerField(max_length=11)
     secondary_contact = models.IntegerField(max_length=11)
-    
+    is_admin = models.BooleanField(default=False)
+	
     objects = MyUserManager()
     
     def get_full_name(self):
@@ -72,7 +73,7 @@ class MyUser(AbstractBaseUser):
     
 class Patient(MyUser):
     is_content_manager=models.BooleanField(default=False)
-    is_admin = models.BooleanField(default=False)
+    is_admin = False
     
 
     def has_perm(self, perm, obj=None):
@@ -99,7 +100,7 @@ class Patient(MyUser):
     
 class Doctor(MyUser):
     is_content_manager=models.BooleanField(default=False)
-    is_admin = models.BooleanField(default=False)
+    is_admin = False
     specialization= models.CharField(max_length=40, unique=False)
     
 
@@ -126,7 +127,7 @@ class Doctor(MyUser):
 
 class Nurse(MyUser):
     is_content_manager=models.BooleanField(default=False)
-    is_admin = models.BooleanField(default=False)
+    is_admin = False
     department= models.CharField(max_length=40, unique=False)
     
     def has_perm(self, perm, obj=None):
