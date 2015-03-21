@@ -1,9 +1,7 @@
 """
 Django settings for HMSite project.
-
 For more information on this file, see
 https://docs.djangoproject.com/en/1.7/topics/settings/
-
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
@@ -37,6 +35,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+	'HMS',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -52,7 +51,6 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'HMSite.urls'
 
 WSGI_APPLICATION = 'HMSite.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
