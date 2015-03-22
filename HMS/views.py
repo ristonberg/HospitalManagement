@@ -1,8 +1,12 @@
-from django.http import import HttpResponse
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 
+def login(request):
+    return HttpResponse("Login")
 
-@login_required
+def registration(request):
+    return HttpResponse("Registration")
+
 def homepage(request):
-    return render(request, "index.html")
+    return HttpResponse("Homepage")
