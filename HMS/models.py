@@ -6,20 +6,19 @@ from django.contrib.auth.models import (
 class MyUserManager(BaseUserManager):
     use_in_migrations=True
 
-    def create_user(self, username, status, first_name,last_name, email, date_of_birth, sex, marriage_status, primary_contact, secondary_contact,
+    def create_user(self, identifier, email, status=None, first_name=None,last_name=None, date_of_birth=None, sex=None, marriage_status=None, primary_contact=None, secondary_contact=None,
                     password=None):
         """
         Creates and saves a User with the given email, date of
         birth and password.
         """
-        REQUIRED_FIELDS['email']
         if not email:
             raise ValueError('Users must have an email address')
         user = self.model(
             status=status,
             email=self.normalize_email(email),
             date_of_birth=date_of_birth,
-            specialization=specialization,
+            #specialization=specialization,
             sex=sex,
             first_name=first_name,
             last_name=last_name,
@@ -32,13 +31,13 @@ class MyUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, email, password):
+    def create_superuser(self, identifier, email, password):
         """
         Creates and saves a superuser with the given email, date of
         birth and password.
         """
         user = self.create_user(email=email,
-            username=username,
+            identifier=identifier,
             password=password,
         )
         user.is_admin = True
@@ -47,8 +46,8 @@ class MyUserManager(BaseUserManager):
 
 class MyUser(AbstractBaseUser):
     REQUIRED_FIELDS=['email']
-    username = models.CharField(max_length=20, unique=True)
-    USERNAME_FIELD = 'username'
+    identifier = models.CharField(max_length=20, unique=True)
+    USERNAME_FIELD = 'identifier'
     email = models.EmailField(verbose_name='email address',
                               max_length=255, unique=True,)
     status=models.CharField(max_length=15, unique=False)
