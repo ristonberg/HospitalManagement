@@ -4,7 +4,7 @@ from django.contrib.auth.models import (
 )
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, identifier, status, first_name,last_name, email, date_of_birth, sex, marriage_status, primary_contact, secondary_contact,
+    def create_user(self, status, first_name,last_name, email, date_of_birth, sex, marriage_status, primary_contact, secondary_contact,
                     password=None):
         """
         Creates and saves a User with the given email, date of
@@ -12,7 +12,6 @@ class MyUserManager(BaseUserManager):
         """
         if not email:
             raise ValueError('Users must have an email address')
-
         user = self.model(
             status=status,
             email=self.normalize_email(email),
@@ -26,8 +25,6 @@ class MyUserManager(BaseUserManager):
             secondary_contact=secondary_contact,
         )
 
-        REQUIRED_FIELDS = ['email', 'date_of_birth']
-
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -37,9 +34,9 @@ class MyUserManager(BaseUserManager):
         Creates and saves a superuser with the given email, date of
         birth and password.
         """
-        user = self.model(email=self.normalize_email(email),
+        user = self.create_user(email=email,
+            identifier=identifier,
             password=password,
-			identifier=identifier,
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -60,7 +57,7 @@ class MyUser(AbstractBaseUser):
     primary_contact = models.IntegerField(max_length=11)
     secondary_contact = models.IntegerField(max_length=11)
     is_admin = models.BooleanField(default=False)
-    REQUIRED_FIELDS = ['email']
+    REQUIRED_FIELDS=['email']
     objects = MyUserManager()
     
     def get_full_name(self):
