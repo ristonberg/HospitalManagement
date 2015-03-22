@@ -4,7 +4,7 @@ from django.contrib.auth.models import (
 )
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, status, first_name,last_name, email, date_of_birth, sex, marriage_status, primary_contact, secondary_contact,
+    def create_user(self, identifier, status, first_name,last_name, email, date_of_birth, sex, marriage_status, primary_contact, secondary_contact,
                     password=None):
         """
         Creates and saves a User with the given email, date of
@@ -26,17 +26,20 @@ class MyUserManager(BaseUserManager):
             secondary_contact=secondary_contact,
         )
 
+        REQUIRED_FIELDS = ['email', 'date_of_birth']
+
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password):
+    def create_superuser(self, identifier, email, password):
         """
         Creates and saves a superuser with the given email, date of
         birth and password.
         """
-        user = self.create_user(email,
+        user = self.model(email=self.normalize_email(email),
             password=password,
+			identifier=identifier,
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -57,7 +60,7 @@ class MyUser(AbstractBaseUser):
     primary_contact = models.IntegerField(max_length=11)
     secondary_contact = models.IntegerField(max_length=11)
     is_admin = models.BooleanField(default=False)
-	
+    REQUIRED_FIELDS = ['email']
     objects = MyUserManager()
     
     def get_full_name(self):
