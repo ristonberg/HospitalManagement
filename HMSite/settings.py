@@ -1,82 +1,152 @@
-"""
-Django settings for HMSite project.
-For more information on this file, see
-https://docs.djangoproject.com/en/1.7/topics/settings/
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.7/ref/settings/
-"""
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
-TEMPLATE_DIRS = (os.path.join(BASE_DIR, 'templates'),)
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'm@w#p&6p+pt&5bhq+a)@5q_&0xcg#@s-1#xhp0i0js(f69%@y)'
-
-AUTH_USER_MODEL = 'HMS.MyUser'
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-TEMPLATE_DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
-# Application definition
-
-INSTALLED_APPS = (
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-	'HMS',
+from django.db import models
+from django.contrib.auth.models import (
+    AbstractBaseUser, BaseUserManager
 )
 
-MIDDLEWARE_CLASSES = (
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
+class MyUserManager(BaseUserManager):
+    def create_user(self, status, first_name,last_name, email, date_of_birth, sex, marriage_status, primary_contact, secondary_contact,
+                    password=None):
+        """
+        Creates and saves a User with the given email, date of
+        birth and password.
+        """
+        if not email:
+            raise ValueError('Users must have an email address')
+        user = self.model(
+            status=status,
+            email=self.normalize_email(email),
+            date_of_birth=date_of_birth,
+            specialization=specialization,
+            sex=sex,
+            first_name=first_name,
+            last_name=last_name,
+            marriage_status=marriage_status,
+            primary_contact=primary_contact,
+            secondary_contact=secondary_contact,
+        )
 
-ROOT_URLCONF = 'HMSite.urls'
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
-WSGI_APPLICATION = 'HMSite.wsgi.application'
+    def create_superuser(self, identifier, email, password):
+        """
+        Creates and saves a superuser with the given email, date of
+        birth and password.
+        """
+        user = self.create_user(email=email,
+            identifier=identifier,
+            password=password,
+        )
+        user.is_admin = True
+        user.save(using=self._db)
+        return user
 
-# Database
-# https://docs.djangoproject.com/en/1.7/ref/settings/#databases
+class MyUser(AbstractBaseUser):
+    identifier = models.CharField(max_length=20, unique=True)
+    USERNAME_FIELD = 'identifier'
+    email = models.EmailField(verbose_name='email address',
+                              max_length=255, unique=True,)
+    status=models.CharField(max_length=15, unique=False)
+    is_active=models.BooleanField(default=True)
+    date_of_birth = models.DateField()
+    sex = models.CharField(max_length=10, unique=False)
+    first_name = models.CharField(max_length=40, unique=False)
+    last_name = models.CharField(max_length=40, unique=False)
+    marriage_status = models.BooleanField(default=False)
+    primary_contact = models.IntegerField(max_length=11)
+    secondary_contact = models.IntegerField(max_length=11)
+    is_admin = models.BooleanField(default=False)
+    REQUIRED_FIELDS=['email']
+    objects = MyUserManager()
+    
+    def get_full_name(self):
+        # The user is identified by their email address
+        return self.first_name
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
+    def get_short_name(self):
+        # The user is identified by their email address
+        return self.name
 
-# Internationalization
-# https://docs.djangoproject.com/en/1.7/topics/i18n/
+    def __str__(self):              # __unicode__ on Python 2
+        return self.name
+    
+class Patient(MyUser):
+    is_content_manager=models.BooleanField(default=False)
+    is_admin = False
+    
 
-LANGUAGE_CODE = 'en-us'
+    def has_perm(self, perm, obj=None):
+        "Does the user have a specific permission?"
+        # Simplest possible answer: Yes, always
+        return True
 
-TIME_ZONE = 'UTC'
+    def has_module_perms(self, app_label):
+        "Does the user have permissions to view the app `app_label`?"
+        # Simplest possible answer: Yes, always
+        return True
 
-USE_I18N = True
+    @property
+    def is_staff(self):                                              
+        "Is the user a member of staff?"
+        # Simplest possible answer: All admins are staff
+        return False
 
-USE_L10N = True
+    def save(self, *args, **kwargs):
+        # if user being demoted from content manager, make sure they are not
+        # managing any courses
+        super().save(*args, **kwargs)
+    
+    
+class Doctor(MyUser):
+    is_content_manager=models.BooleanField(default=False)
+    is_admin = False
+    specialization= models.CharField(max_length=40, unique=False)
+    
 
-USE_TZ = True
+    def has_perm(self, perm, obj=None):
+        "Does the user have a specific permission?"
+        # Simplest possible answer: Yes, always
+        return True
 
+    def has_module_perms(self, app_label):
+        "Does the user have permissions to view the app `app_label`?"
+        # Simplest possible answer: Yes, always
+        return True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.7/howto/static-files/
+    @property
+    def is_staff(self):                                                 #idk on this one. probably not?
+        "Is the user a member of staff?"
+        # Simplest possible answer: All admins are staff
+        return self.is_admin
 
-STATIC_URL = '/static/'
+    def save(self, *args, **kwargs):
+        # if user being demoted from content manager, make sure they are not
+        # managing any courses
+        super().save(*args, **kwargs)
+
+class Nurse(MyUser):
+    is_content_manager=models.BooleanField(default=False)
+    is_admin = False
+    department= models.CharField(max_length=40, unique=False)
+    
+    def has_perm(self, perm, obj=None):
+        "Does the user have a specific permission?"
+        # Simplest possible answer: Yes, always
+        return True
+
+    def has_module_perms(self, app_label):
+        "Does the user have permissions to view the app `app_label`?"
+        # Simplest possible answer: Yes, always
+        return True
+
+    @property
+    def is_staff(self):                                                 #idk on this one. probably not?
+        "Is the user a member of staff?"
+        # Simplest possible answer: All admins are staff
+        return self.is_admin
+
+    def save(self, *args, **kwargs):
+        # if user being demoted from content manager, make sure they are not
+        # managing any courses
+        super().save(*args, **kwargs)
