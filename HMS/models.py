@@ -4,12 +4,15 @@ from django.contrib.auth.models import (
 )
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, identifier, status, first_name,last_name, email, date_of_birth, sex, marriage_status, primary_contact, secondary_contact,
+    use_in_migrations=True
+
+    def create_user(self, username, status, first_name,last_name, email, date_of_birth, sex, marriage_status, primary_contact, secondary_contact,
                     password=None):
         """
         Creates and saves a User with the given email, date of
         birth and password.
         """
+        REQUIRED_FIELDS['email']
         if not email:
             raise ValueError('Users must have an email address')
         user = self.model(
@@ -29,13 +32,13 @@ class MyUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, identifier, email, password):
+    def create_superuser(self, username, email, password):
         """
         Creates and saves a superuser with the given email, date of
         birth and password.
         """
         user = self.create_user(email=email,
-            identifier=identifier,
+            username=username,
             password=password,
         )
         user.is_admin = True
@@ -43,8 +46,9 @@ class MyUserManager(BaseUserManager):
         return user
 
 class MyUser(AbstractBaseUser):
-    identifier = models.CharField(max_length=20, unique=True)
-    USERNAME_FIELD = 'identifier'
+    REQUIRED_FIELDS=['email']
+    username = models.CharField(max_length=20, unique=True)
+    USERNAME_FIELD = 'username'
     email = models.EmailField(verbose_name='email address',
                               max_length=255, unique=True,)
     status=models.CharField(max_length=15, unique=False)
