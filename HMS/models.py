@@ -12,7 +12,6 @@ class MyUserManager(BaseUserManager):
         """
         if not email:
             raise ValueError('Users must have an email address')
-
         user = self.model(
             status=status,
             email=self.normalize_email(email),
@@ -30,12 +29,13 @@ class MyUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password):
+    def create_superuser(self, identifier, email, password):
         """
         Creates and saves a superuser with the given email, date of
         birth and password.
         """
-        user = self.create_user(email,
+        user = self.create_user(email=email,
+            identifier=identifier,
             password=password,
         )
         user.is_admin = True
@@ -57,7 +57,7 @@ class MyUser(AbstractBaseUser):
     primary_contact = models.IntegerField(max_length=11)
     secondary_contact = models.IntegerField(max_length=11)
     is_admin = models.BooleanField(default=False)
-    
+    REQUIRED_FIELDS=['email']
     objects = MyUserManager()
     
     def get_full_name(self):
